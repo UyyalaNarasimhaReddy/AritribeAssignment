@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Task Manager</title>
   <style>
-    /* Your CSS styles here */
+    
     
     body {
       font-family: Arial, sans-serif;
@@ -135,7 +135,7 @@
 <body>
 
 <nav>
-  <!-- Navigation bar content here -->
+  
   <div class="status">
     <h2>Not Started</h2>
     <div class="count" id="notStartedCount">0</div>
@@ -165,7 +165,7 @@
   </div>
 </div> 
 
-<!-- Task Details Modal -->
+
 <div id="taskDetailsModal">
   <div class="task-details-content">
     <span class="close-modal" onclick="closeTaskDetailsModal()">❌</span>
@@ -232,38 +232,38 @@
     return taskElement;
   }
 
-  // Function to update counts
+ 
   function updateCounts() {
     document.getElementById('notStartedCount').textContent = countTasks('notStarted');
     document.getElementById('inProgressCount').textContent = countTasks('inProgress');
     document.getElementById('completedCount').textContent = countTasks('completed');
   }
 
-  // Function to count tasks for a given status
+  
   function countTasks(status) {
     return document.getElementById(`${status}Tasks`).childElementCount;
   }
 
-  // Open task details modal with default status based on section clicked
+ 
   function openModal(status) {
     document.getElementById('taskDetailsModal').style.display = 'block';
-    document.getElementById('title').value = ''; // Clear input field
-    document.getElementById('status').value = status; // Set status dropdown value
-    document.getElementById('description').value = ''; // Clear description field
-    document.getElementById('taskId').value = ''; // Clear task ID field
+    document.getElementById('title').value = ''; 
+    document.getElementById('status').value = status; 
+    document.getElementById('description').value = ''; 
+    document.getElementById('taskId').value = ''; 
   }
 
-  // Function to add or update task
+  
   function addOrUpdateTask() {
     const taskId = document.getElementById('taskId').value;
     if (taskId) {
-      updateTask(taskId); // If taskId exists, update existing task
+      updateTask(taskId); 
     } else {
-      addTask(); // If taskId doesn't exist, add new task
+      addTask();
     }
   }
 
-  // Function to add new task
+ 
   function addTask() {
     const title = document.getElementById('title').value;
     const status = document.getElementById('status').value;
@@ -280,7 +280,7 @@
     closeTaskDetailsModal();
   }
 
-  // Function to update an existing task
+
   function updateTask(taskId) {
     const title = document.getElementById('title').value;
     const status = document.getElementById('status').value;
@@ -304,7 +304,7 @@
     }
   }
 
-  // Function to remove task
+  
   function removeTask(taskId) {
     const index = tasks.findIndex(task => task.id == taskId);
     if (index !== -1) {
@@ -317,22 +317,22 @@
     }
   }
 
-  // Function to save tasks to local storage
+ 
   function saveTasksToLocalStorage() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }
 
-  // Close task details modal
+
   function closeTaskDetailsModal() {
     document.getElementById('taskDetailsModal').style.display = 'none';
   }
 
-  // Allow tasks to be dropped into task containers
+  
   function allowDrop(event) {
     event.preventDefault();
   }
 
-  // Handle dropping tasks into task containers
+  
   function drop(event, status) {
     event.preventDefault();
     const taskId = event.dataTransfer.getData('text');
@@ -350,7 +350,7 @@
     }
   }
 
-  // Function to populate task details modal with existing task details
+  
   function openTaskDetails(taskId) {
     const task = tasks.find(task => task.id == taskId);
     document.getElementById('taskId').value = taskId;
@@ -360,7 +360,7 @@
     document.getElementById('taskDetailsModal').style.display = 'block';
   }
 
-  // Call the initializePage function when the page loads
+  
   window.onload = initializePage;
 
 </script>
