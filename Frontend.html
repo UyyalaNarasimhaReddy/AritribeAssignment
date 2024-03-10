@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <style>
+    /* Your CSS styles here */
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    nav {
+      background-color: #333;
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+    }
+    .status:not(:last-child) {
+      margin-right: 20px;
+    }
+    .status h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .status .count {
+      margin-left: 5px;
+      background-color: #fff;
+      color: #333;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .status .add-icon {
+      margin-left: 10px;
+      cursor: pointer;
+    }
+    .task-container-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    .task-container {
+      flex-grow: 1;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-right: 10px;
+    }
+    .task {
+      background-color: #f9f9f9;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .task:hover {
+      background-color: #e0e0e0;
+    }
+    .remove-task {
+      cursor: pointer;
+      float: right;
+      margin-left: 10px;
+    }
+    /* Task Details Modal */
+    #taskDetailsModal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding-top: 60px;
+    }
+    .task-details-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      position: relative; /* Added */
+    }
+    .task-details-content h2 {
+      margin-top: 0;
+    }
+    .task-details-content input[type="text"],
+    .task-details-content select,
+    .task-details-content textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 20px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .task-details-content button {
+      background-color: #333;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    .task-details-content button:hover {
+      background-color: #45a049;
+    }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <!-- Navigation bar content here -->
+  <div class="status">
+    <h2>Not Started</h2>
+    <div class="count" id="notStartedCount">0</div>
+    <div class="add-icon" onclick="openModal('notStarted')">+</div>
+  </div>
+  <div class="status">
+    <h2>In Progress</h2>
+    <div class="count" id="inProgressCount">0</div>
+    <div class="add-icon" onclick="openModal('inProgress')">+</div>
+  </div>
+  <div class="status">
+    <h2>Completed</h2>
+    <div class="count" id="completedCount">0</div>
+    <div class="add-icon" onclick="openModal('completed')">+</div>
+  </div>
+</nav>
+
+<div class="task-container-wrapper">
+  <div class="task-container" id="notStartedTasks" ondrop="drop(event, 'notStarted')" ondragover="allowDrop(event)">
+    <h3>Not Started</h3>
+  </div>
+  <div class="task-container" id="inProgressTasks" ondrop="drop(event, 'inProgress')" ondragover="allowDrop(event)">
+    <h3>In Progress</h3>
+  </div>
+  <div class="task-container" id="completedTasks" ondrop="drop(event, 'completed')" ondragover="allowDrop(event)">
+    <h3>Completed</h3>
+  </div>
+</div> 
+
+<!-- Task Details Modal -->
+<div id="taskDetailsModal">
+  <div class="task-details-content">
+    <span class="close-modal" onclick="closeTaskDetailsModal()">❌</span>
+    <h2>Task Details</h2>
+    <input type="hidden" id="taskId">
+    <input type="text" id="title" placeholder="Task Title"><br><br>
+    <select id="status">
+      <option value="notStarted">Not Started</option>
+      <option value="inProgress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select><br><br>
+    <textarea id="description" placeholder="Task Description"></textarea><br><br>
+    <button id="saveButton" onclick="addOrUpdateTask()">Add Task</button>
+  </div>
+</div>
+
+<script>
+  let tasks = []; 
+
+  function initializePage() {
+  
+    let storedTasks = localStorage.getItem('tasks');
+    if (storedTasks) {
+      tasks = JSON.parse(storedTasks);
+      displayTasks(tasks);
+    }
+  }
+
+  
+  function displayTasks(tasks) {
+    tasks.forEach(task => {
+      const taskElement = createTaskElement(task);
+      document.getElementById(`${task.status}Tasks`).appendChild(taskElement);
+    });
+
+    updateCounts();
+  }
+
+  
+  function createTaskElement(task) {
+    const taskElement = document.createElement('div');
+    taskElement.classList.add('task');
+    taskElement.textContent = task.title;
+    taskElement.setAttribute('data-task-id', task.id);
+    taskElement.setAttribute('data-status', task.status);
+    taskElement.setAttribute('draggable', 'true'); 
+    taskElement.onclick = function() {
+      openTaskDetails(task.id);
+    };
+    taskElement.ondragstart = function(event) {
+      event.dataTransfer.setData('text/plain', task.id);
+    };
+
+    const removeButton = document.createElement('span');
+    removeButton.textContent = '❌';
+    removeButton.classList.add('remove-task');
+    removeButton.onclick = function(event) {
+      event.stopPropagation(); 
+      removeTask(task.id);
+    };
+
+    taskElement.appendChild(removeButton);
+
+    return taskElement;
+  }
+
+  // Function to update counts
+  function updateCounts() {
+    document.getElementById('notStartedCount').textContent = countTasks('notStarted');
+    document.getElementById('inProgressCount').textContent = countTasks('inProgress');
+    document.getElementById('completedCount').textContent = countTasks('completed');
+  }
+
+  // Function to count tasks for a given status
+  function countTasks(status) {
+    return document.getElementById(`${status}Tasks`).childElementCount;
+  }
+
+  // Open task details modal with default status based on section clicked
+  function openModal(status) {
+    document.getElementById('taskDetailsModal').style.display = 'block';
+    document.getElementById('title').value = ''; // Clear input field
+    document.getElementById('status').value = status; // Set status dropdown value
+    document.getElementById('description').value = ''; // Clear description field
+    document.getElementById('taskId').value = ''; // Clear task ID field
+  }
+
+  // Function to add or update task
+  function addOrUpdateTask() {
+    const taskId = document.getElementById('taskId').value;
+    if (taskId) {
+      updateTask(taskId); // If taskId exists, update existing task
+    } else {
+      addTask(); // If taskId doesn't exist, add new task
+    }
+  }
+
+  // Function to add new task
+  function addTask() {
+    const title = document.getElementById('title').value;
+    const status = document.getElementById('status').value;
+    const description = document.getElementById('description').value;
+    const taskId = new Date().getTime(); // Generate unique ID for new task
+    const task = { id: taskId, title, status, description };
+    tasks.push(task);
+
+    const taskElement = createTaskElement(task);
+    document.getElementById(`${status}Tasks`).appendChild(taskElement);
+
+    updateCounts();
+    saveTasksToLocalStorage();
+    closeTaskDetailsModal();
+  }
+
+  // Function to update an existing task
+  function updateTask(taskId) {
+    const title = document.getElementById('title').value;
+    const status = document.getElementById('status').value;
+    const description = document.getElementById('description').value;
+
+    const task = tasks.find(task => task.id == taskId);
+    if (task) {
+      task.title = title;
+      task.status = status;
+      task.description = description;
+
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      if (taskElement) {
+        taskElement.textContent = title;
+        taskElement.setAttribute('data-status', status);
+      }
+
+      updateCounts();
+      saveTasksToLocalStorage();
+      closeTaskDetailsModal();
+    }
+  }
+
+  // Function to remove task
+  function removeTask(taskId) {
+    const index = tasks.findIndex(task => task.id == taskId);
+    if (index !== -1) {
+      const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+      taskElement.remove();
+      tasks.splice(index, 1);
+
+      updateCounts();
+      saveTasksToLocalStorage();
+    }
+  }
+
+  // Function to save tasks to local storage
+  function saveTasksToLocalStorage() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  // Close task details modal
+  function closeTaskDetailsModal() {
+    document.getElementById('taskDetailsModal').style.display = 'none';
+  }
+
+  // Allow tasks to be dropped into task containers
+  function allowDrop(event) {
+    event.preventDefault();
+  }
+
+  // Handle dropping tasks into task containers
+  function drop(event, status) {
+    event.preventDefault();
+    const taskId = event.dataTransfer.getData('text');
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    const currentStatus = taskElement.getAttribute('data-status');
+
+    if (currentStatus !== status) {
+      taskElement.setAttribute('data-status', status);
+      document.getElementById(`${currentStatus}Tasks`).removeChild(taskElement);
+      document.getElementById(`${status}Tasks`).appendChild(taskElement);
+      tasks.find(task => task.id == taskId).status = status;
+
+      updateCounts();
+      saveTasksToLocalStorage();
+    }
+  }
+
+  // Function to populate task details modal with existing task details
+  function openTaskDetails(taskId) {
+    const task = tasks.find(task => task.id == taskId);
+    document.getElementById('taskId').value = taskId;
+    document.getElementById('title').value = task.title;
+    document.getElementById('status').value = task.status;
+    document.getElementById('description').value = task.description || '';
+    document.getElementById('taskDetailsModal').style.display = 'block';
+  }
+
+  // Call the initializePage function when the page loads
+  window.onload = initializePage;
+
+</script>
+
+</body>
+</html>
